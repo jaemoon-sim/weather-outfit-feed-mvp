@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>등원룩 날씨 피드 MVP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="side-panel" aria-label="날씨 기준">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">D</span>
+          <div>
+            <p class="eyebrow">Weather Outfit Feed</p>
+            <h1>오늘 등원룩</h1>
+          </div>
+        </div>
+
+        <section class="control-group" aria-labelledby="location-title">
+          <div class="section-heading">
+            <h2 id="location-title">기준 위치</h2>
+            <span id="weather-status" class="status-pill">준비 중</span>
+          </div>
+          <div class="location-row">
+            <select id="location-select" aria-label="기준 지역 선택"></select>
+            <button id="geo-button" class="icon-button" type="button" title="현재 위치 사용" aria-label="현재 위치 사용">
+              <span aria-hidden="true">⌖</span>
+            </button>
+          </div>
+          <p id="location-note" class="muted">
+            위치 권한 없이도 지역을 선택해 볼 수 있어요.
+          </p>
+        </section>
+
+        <section class="weather-card" aria-labelledby="today-title">
+          <div class="section-heading">
+            <h2 id="today-title">등원 시간대</h2>
+            <span>07-09시</span>
+          </div>
+          <div class="weather-main">
+            <span id="apparent-temp" class="temp">--°</span>
+            <div>
+              <strong id="weather-label">날씨 확인 중</strong>
+              <p id="weather-summary">오늘 아침 체감 날씨를 불러오고 있어요.</p>
+            </div>
+          </div>
+          <dl class="weather-metrics">
+            <div>
+              <dt>강수</dt>
+              <dd id="rain-metric">--</dd>
+            </div>
+            <div>
+              <dt>바람</dt>
+              <dd id="wind-metric">--</dd>
+            </div>
+            <div>
+              <dt>습도</dt>
+              <dd id="humidity-metric">--</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="control-group" aria-labelledby="filter-title">
+          <div class="section-heading">
+            <h2 id="filter-title">필터</h2>
+            <button id="reset-filter" class="text-button" type="button">초기화</button>
+          </div>
+          <div class="segmented" role="group" aria-label="아이 나이대">
+            <button class="chip is-active" type="button" data-filter="age" data-value="all">전체</button>
+            <button class="chip" type="button" data-filter="age" data-value="toddler">영아</button>
+            <button class="chip" type="button" data-filter="age" data-value="preschool">유아</button>
+            <button class="chip" type="button" data-filter="age" data-value="school">초등</button>
+          </div>
+          <label class="toggle">
+            <input id="rain-filter" type="checkbox" />
+            <span>비 오는 날만</span>
+          </label>
+          <label class="toggle">
+            <input id="wind-filter" type="checkbox" />
+            <span>바람 있는 날만</span>
+          </label>
+        </section>
+
+        <section class="control-group" aria-labelledby="add-title">
+          <div class="section-heading">
+            <h2 id="add-title">공개 게시물 등록</h2>
+            <span class="mini-label">공식 임베드</span>
+          </div>
+          <form id="curation-form" class="curation-form">
+            <label>
+              <span>공개 인스타 게시물 URL</span>
+              <input id="post-url" type="url" placeholder="https://www.instagram.com/p/..." />
+            </label>
+            <div class="form-grid">
+              <label>
+                <span>지역</span>
+                <select id="post-region"></select>
+              </label>
+              <label>
+                <span>나이대</span>
+                <select id="post-age">
+                  <option value="toddler">영아</option>
+                  <option value="preschool" selected>유아</option>
+                  <option value="school">초등</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              <span>메모</span>
+              <input id="post-note" type="text" maxlength="70" placeholder="얇은 패딩 + 맨투맨 조합" />
+            </label>
+            <button class="primary-button" type="submit">피드에 추가</button>
+          </form>
+          <p class="muted">
+            공개 게시물 URL만 임베드로 표시돼요. 비공개/삭제 게시물은 Instagram에서 표시하지 않을 수 있어요.
+          </p>
+        </section>
+      </aside>
+
+      <section class="feed-area" aria-label="등원룩 피드">
+        <div class="feed-toolbar">
+          <div>
+            <p class="eyebrow">비슷한 날씨의 지역</p>
+            <h2 id="match-title">날씨를 불러오는 중</h2>
+          </div>
+          <button id="refresh-button" class="secondary-button" type="button">새로고침</button>
+        </div>
+
+        <div id="region-strip" class="region-strip" aria-label="비슷한 지역 목록"></div>
+
+        <div class="insight-band">
+          <div>
+            <span class="mini-label">피드 상태</span>
+            <strong id="outfit-insight">데이터 계산 중</strong>
+          </div>
+          <p id="result-count">게시물 0개</p>
+        </div>
+
+        <div id="feed-grid" class="feed-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <template id="empty-state-template">
+      <article class="empty-state">
+        <h3>표시할 공개 인스타 게시물이 아직 없어요.</h3>
+        <p>공개 게시물 URL을 등록하면 공식 임베드로 피드에 표시됩니다.</p>
+      </article>
+    </template>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
